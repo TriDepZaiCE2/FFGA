@@ -1,0 +1,64 @@
+{C:/Users/tvant/OneDrive/Máy tính/T_T_T/TopLevelCPU_tb.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/TopLevelCPU_tb.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module TopLevelCPU_tb
+
+Top level modules:
+	TopLevelCPU_tb
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/IntegerALU.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/IntegerALU.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module IntegerALU
+
+Top level modules:
+	IntegerALU
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ProgramCounter.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ProgramCounter.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module ProgramCounter
+
+Top level modules:
+	ProgramCounter
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/MUX2to1.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/MUX2to1.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module MUX2to1
+
+Top level modules:
+	MUX2to1
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/RegisterFile.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/RegisterFile.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module RegisterFile
+
+Top level modules:
+	RegisterFile
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ControlUnit.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ControlUnit.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module ControlUnit
+
+Top level modules:
+	ControlUnit
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/SimpleRAM.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/SimpleRAM.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module SimpleRAM
+
+Top level modules:
+	SimpleRAM
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/InstructionRegister.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/InstructionRegister.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module InstructionRegister
+
+Top level modules:
+	InstructionRegister
+
+} {} {}} {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ClockDivider.v} {1 {vlog -work work {C:/Users/tvant/OneDrive/Máy tính/T_T_T/ClockDivider.v}
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module ClockDivider
+
+Top level modules:
+	ClockDivider
+
+} {} {}}

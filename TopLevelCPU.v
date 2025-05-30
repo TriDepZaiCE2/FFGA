@@ -1,98 +1,123 @@
 module TopLevelCPU (
     input wire clk,
-    input wire reset_n,
-    input wire [2:0] reg_select,
-    output wire [15:0] PC_out,
-    output wire [15:0] reg_out,
-    output wire zero_flag,
-    output wire [2:0] CU_state,
-    output wire [15:0] IR_out
+    input wire rst,
+    input wire mode_run,         // Không còn ý nghĩa khi mô phỏng clock nhanh
+    input wire step,             // Không còn ý nghĩa khi mô phỏng clock nhanh
+    input wire [2:0] reg_select, // chọn thanh ghi để debug
+
+    output wire [15:0] pc_out,
+    output wire [15:0] instr_out,
+    output wire [15:0] reg_debug
 );
 
-    wire [15:0] ram_data_out;
-    wire ram_we, ram_re;
-    wire [5:0] ram_addr;
+    // ==== Clock Connection (dùng trực tiếp clock nhanh) ====
+    wire cpu_clk;
+    assign cpu_clk = clk;
 
-    wire [15:0] IR;
-    wire [15:0] PC;
-    wire ALU_zero;
-    wire [3:0] ALU_op;
+    // ==== Wires ====
+    wire [15:0] instr;
+    wire [15:0] mem_out;
+    wire [15:0] alu_result;
+    wire [15:0] write_data;
+    wire [15:0] alu_src_b;
 
-    wire RF_we;
-    wire [2:0] Rd, Rs, Rt;
-    wire [15:0] RF_write_data, RF_read_data1, RF_read_data2;
-    wire [15:0] reg_data_selected;
+    wire [2:0] rs = instr[8:6];
+    wire [2:0] rt = instr[5:3];
+    wire [2:0] rd = instr[11:9];
+    wire [3:0] opcode = instr[15:12];
+    wire [15:0] immediate = {13'd0, instr[2:0]}; // ví dụ immediate 3-bit
+    wire [15:0] pc_jump_addr = {4'b0000, instr[11:0]};  // JMP
 
-    wire pc_enable_sig, pc_load_sig, ir_load_sig;
+    wire pc_enable, pc_load, ir_load, rf_we, mem_read, mem_write, sel_alu_src;
+    wire [3:0] alu_op;
+    wire zero;
+    wire [2:0] fsm_state;
 
-    assign IR_out = IR;
-    assign PC_out = PC;
-    assign zero_flag = ALU_zero;
+    wire [15:0] op1;
+    wire [15:0] op2;
 
-    assign Rd = IR[11:9];
-    assign Rs = IR[8:6];
-    assign Rt = IR[5:3];
-
-    ProgramCounter pc (
-        .clk(clk),
-        .reset_n(reset_n),
-        .pc_enable(pc_enable_sig),
-        .pc_load(pc_load_sig),
-        .pc_in(16'd0),
-        .pc_out(PC)
+    // ==== Program Counter ====
+    ProgramCounter PC (
+        .clk(cpu_clk),
+        .rst(rst),
+        .load(pc_load),
+        .inc(pc_enable),
+        .pc_in(pc_jump_addr),
+        .pc_out(pc_out)
     );
 
-    InstructionRegister ir (
-        .clk(clk),
-        .load_ir(ir_load_sig),
-        .instr_in(ram_data_out),
-        .instr_out(IR)
+    // ==== Memory (RAM) ====
+    SimpleRAM RAM (
+        .clk(cpu_clk),
+        .we(mem_write),
+        .addr(pc_out[5:0]),  // 64 dòng
+        .din(op2),
+        .dout(mem_out)
     );
 
-    RegisterFile rf (
-        .clk(clk),
-        .we(RF_we),
-        .read_addr1(Rs),
-        .read_addr2(Rt),
-        .write_addr(Rd),
-        .write_data(RF_write_data),
+    // ==== Instruction Register ====
+    InstructionRegister IR (
+        .clk(cpu_clk),
+        .rst(rst),
+        .load(ir_load),
+        .instr_in(mem_out),
+        .instr_out(instr)
+    );
+
+    // ==== Register File ====
+    RegisterFile RF (
+        .clk(cpu_clk),
+        .we(rf_we),
+        .raddr1(rs),
+        .raddr2(rt),
+        .waddr(rd),
+        .wdata(write_data),
         .reg_select(reg_select),
-        .read_data1(RF_read_data1),
-        .read_data2(RF_read_data2),
-        .reg_data_selected(reg_data_selected)
+        .rdata1(op1),
+        .rdata2(op2),
+        .reg_data_selected(reg_debug)
     );
 
-    IntegerALU alu (
-        .A(RF_read_data1),
-        .B(RF_read_data2),
-        .ALUop(ALU_op),
-        .Result(RF_write_data),
-        .Zero(ALU_zero)
+    // ==== ALU ====
+    MUX2to1 #(16) alu_src_mux (
+        .sel(sel_alu_src),
+        .in0(op2),
+        .in1(immediate),
+        .out(alu_src_b)
     );
 
-    ControlUnit cu (
-        .clk(clk),
-        .reset_n(reset_n),
-        .IR(IR),
-        .Zero_flag(ALU_zero),
-        .PC_enable(pc_enable_sig),
-        .PC_load(pc_load_sig),
-        .IR_load(ir_load_sig),
-        .RF_we(RF_we),
-        .ALU_op(ALU_op),
-        .RAM_read(ram_re),
-        .RAM_write(ram_we),
-        .state_out(CU_state)
+    IntegerALU ALU (
+        .op1(op1),
+        .op2(alu_src_b),
+        .alu_op(alu_op),
+        .result(alu_result),
+        .zero(zero)
     );
 
-    SimpleRAM ram (
-        .clk(clk),
-        .we(ram_we),
-        .addr(PC[5:0]),
-        .data_in(RF_read_data2),
-        .data_out(ram_data_out)
+    // ==== Writeback MUX (ALU or MEM) ====
+    MUX2to1 #(16) wb_mux (
+        .sel(opcode == 4'b1100),  // 1100 = LOAD
+        .in0(alu_result),
+        .in1(mem_out),
+        .out(write_data)
     );
 
-    assign reg_out = reg_data_selected;
+    // ==== Control Unit ====
+    ControlUnit CU (
+        .clk(cpu_clk),
+        .rst(rst),
+        .opcode(opcode),
+        .state(fsm_state),
+        .pc_enable(pc_enable),
+        .pc_load(pc_load),
+        .ir_load(ir_load),
+        .rf_we(rf_we),
+        .mem_read(mem_read),
+        .mem_write(mem_write),
+        .alu_op(alu_op),
+        .sel_alu_src(sel_alu_src)
+    );
+
+    assign instr_out = instr;
 
 endmodule
