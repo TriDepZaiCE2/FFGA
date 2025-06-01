@@ -76,7 +76,7 @@ set_location_assignment PIN_R4 -to SW[0]
 set_location_assignment PIN_T4 -to SW[1]
 set_location_assignment PIN_R3 -to SW[2]
 
-# HEX displays (7-seg)
+# HEX displays (7 segments)
 set_location_assignment PIN_AB13 -to HEX0
 set_location_assignment PIN_AC13 -to HEX1
 set_location_assignment PIN_AA13 -to HEX2
